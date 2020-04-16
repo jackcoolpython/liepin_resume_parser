@@ -55,7 +55,7 @@ class Resume():
             self._spliters["："] = ":"
             self._spliters[":"] = "："
             table = self.soup.find('table', attrs={'class': 'resume-basic-info'})
-            self.resume_id = self.soup.find('title').text.split('_')[0]
+            self.resume_id = self.soup.find('title').text.split('_')[0][3:].upper()
             self.resume_basic_info = self._process_resume_basic(table)
             self.resume_basic_info['ID'] = self.resume_id
             self.current_info = self._process_current_info(self.soup)
@@ -66,6 +66,17 @@ class Resume():
             self.resume_language = [i.text.strip() for i in self.soup.find('div', attrs={'class': 'resume-language'}).find('tbody').find_all('tr')]
             pass
 
+    def to_json(self):
+        resume = {}
+        resume['basic_info'] = self.resume_basic_info
+        resume['works'] = self.work_info
+        resume['edus'] = self.edu_info
+        resume['skills'] = self.skill_list
+        resume['comments'] = self.resume_comments
+        resume['languages'] = self.resume_language
+        return json.dumps(resume)
+
+            
     def _process_resume_basic(self, table):
         table_body = table.find('tbody')
         rows = table_body.find_all('tr')
@@ -171,8 +182,8 @@ class Resume():
                 spliter = '（'
             school, times = edu.find('div', attrs={'class': 'info'}).find('p').text.strip().replace(" ", '').replace("\n", '').split(spliter)
             
-            degree, types = edu.find('div', attrs={'class': 'info'}).find('p', attrs={'class': 'degree'}).text.strip().replace(" ", '').replace("\n", '').split('|')
+            degree, major = edu.find('div', attrs={'class': 'info'}).find('p', attrs={'class': 'degree'}).text.strip().replace(" ", '').replace("\n", '').split('|')
             tips = [i.text for i in edu.find('div', attrs={'class': 'info'}).findAll('span', attrs={'class': 'tips'})]
-            edu_info_list.append({'SchoolName':school, "SchoolTime":times, "Degree":degree, "SchoolType":types, "SchoolTips":tips})
+            edu_info_list.append({'SchoolName':school, "SchoolTime":times, "Degree":degree, "Major":major, "SchoolTips":tips})
         return edu_info_list
 
